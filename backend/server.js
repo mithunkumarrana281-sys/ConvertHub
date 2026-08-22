@@ -219,12 +219,12 @@ app.post("/convert/image", upload.single("file"), (req, res) => {
             `${Date.now()}-${originalName}.${actualFormat}`
         );
 
-    execFile(
-        "magick",
-        [
-            input,
-            output
-        ],
+     execFile(
+     "convert",
+     [
+         input,
+         output
+     ],
         {
             timeout: 5 * 60 * 1000
         },
