@@ -64,7 +64,6 @@ const audioFormats = [
     "opus"
 ];
 
-
 const imageFormats = [
     "jpg",
     "jpeg",
@@ -73,7 +72,6 @@ const imageFormats = [
     "bmp",
     "tiff"
 ];
-
 
 const mimeTypes = {
 
@@ -177,6 +175,135 @@ function removeDirectory(dir) {
         }
 
     }
+
+}
+
+
+/* =========================
+   RUN GHOSTSCRIPT
+========================= */
+
+function runGhostscript(
+    input,
+    output,
+    settings
+) {
+
+    return new Promise(
+        (resolve, reject) => {
+
+            const args = [
+
+                "-sDEVICE=pdfwrite",
+
+                "-dCompatibilityLevel=1.4",
+
+                "-dNOPAUSE",
+
+                "-dBATCH",
+
+                "-dQUIET",
+
+                "-dDetectDuplicateImages=true",
+
+                "-dCompressFonts=true",
+
+                "-dSubsetFonts=true",
+
+                "-dEmbedAllFonts=true",
+
+                "-dAutoRotatePages=/None",
+
+                "-dUseFlateCompression=true",
+
+                "-dDownsampleColorImages=true",
+
+                "-dDownsampleGrayImages=true",
+
+                "-dDownsampleMonoImages=true",
+
+                `-dColorImageResolution=${settings.colorDpi}`,
+
+                `-dGrayImageResolution=${settings.grayDpi}`,
+
+                `-dMonoImageResolution=${settings.monoDpi}`,
+
+                "-dColorImageDownsampleType=/Bicubic",
+
+                "-dGrayImageDownsampleType=/Bicubic",
+
+                "-dMonoImageDownsampleType=/Subsample",
+
+                "-dAutoFilterColorImages=false",
+
+                "-dAutoFilterGrayImages=false",
+
+                "-dColorImageFilter=/DCTEncode",
+
+                "-dGrayImageFilter=/DCTEncode",
+
+                `-dJPEGQ=${settings.jpegQuality}`,
+
+                "-dEncodeColorImages=true",
+
+                "-dEncodeGrayImages=true",
+
+                `-sOutputFile=${output}`,
+
+                input
+
+            ];
+
+
+            execFile(
+                "gs",
+                args,
+                {
+                    timeout:
+                        10 * 60 * 1000
+                },
+                (
+                    error,
+                    stdout,
+                    stderr
+                ) => {
+
+                    if (error) {
+
+                        console.error(
+                            "Ghostscript error:",
+                            stderr
+                        );
+
+                        reject(error);
+
+                        return;
+                    }
+
+
+                    if (
+                        !fs.existsSync(
+                            output
+                        )
+                    ) {
+
+                        reject(
+                            new Error(
+                                "Ghostscript did not create output"
+                            )
+                        );
+
+                        return;
+                    }
+
+
+                    resolve();
+
+                }
+            );
+
+        }
+    );
 
 }
 
@@ -1063,15 +1190,6 @@ app.post(
                 }
 
 
-                /*
-                 * IMPORTANT:
-                 * execFile does not expand
-                 * wildcards like *.pdf.
-                 *
-                 * Therefore every PDF path
-                 * is passed explicitly.
-                 */
-
                 execFile(
                     "zip",
                     [
@@ -1239,11 +1357,6 @@ app.post(
                 }
 
 
-                /*
-                 * Current frontend downloads
-                 * the first page.
-                 */
-
                 const firstPage =
                     path.join(
                         folder,
@@ -1323,10 +1436,28 @@ app.post(
             req.file.path;
 
 
-        const originalSize =
-            fs.statSync(
-                input
-            ).size;
+        let originalSize;
+
+
+        try {
+
+            originalSize =
+                fs.statSync(
+                    input
+                ).size;
+
+        } catch (error) {
+
+            removeFile(input);
+
+            return res.status(500).json({
+
+                error:
+                    "Could not read PDF"
+
+            });
+
+        }
 
 
         const mode =
@@ -1351,41 +1482,76 @@ app.post(
 
 
         /*
-         * Ghostscript presets.
+         * =========================
+         * COMPRESSION PROFILES
+         * =========================
          *
-         * /prepress = highest quality
-         * /printer  = high quality
-         * /ebook    = balanced
-         * /screen   = smallest
+         * More aggressive than the
+         * previous version.
+         *
+         * Lower DPI + lower JPEGQ
+         * = smaller scanned PDFs.
          */
 
-        const presets = [
+        const profiles = [
 
-            "/prepress",
-            "/printer",
-            "/ebook",
-            "/screen"
+            {
+                name: "high",
+                colorDpi: 170,
+                grayDpi: 170,
+                monoDpi: 200,
+                jpegQuality: 80
+            },
+
+            {
+                name: "balanced-high",
+                colorDpi: 150,
+                grayDpi: 150,
+                monoDpi: 180,
+                jpegQuality: 70
+            },
+
+            {
+                name: "balanced",
+                colorDpi: 120,
+                grayDpi: 120,
+                monoDpi: 160,
+                jpegQuality: 60
+            },
+
+            {
+                name: "medium",
+                colorDpi: 100,
+                grayDpi: 100,
+                monoDpi: 140,
+                jpegQuality: 50
+            },
+
+            {
+                name: "strong",
+                colorDpi: 85,
+                grayDpi: 85,
+                monoDpi: 120,
+                jpegQuality: 40
+            },
+
+            {
+                name: "very-strong",
+                colorDpi: 72,
+                grayDpi: 72,
+                monoDpi: 100,
+                jpegQuality: 30
+            },
+
+            {
+                name: "maximum",
+                colorDpi: 60,
+                grayDpi: 60,
+                monoDpi: 80,
+                jpegQuality: 20
+            }
 
         ];
-
-
-        /*
-         * Quality selected by user
-         * for AUTO mode.
-         */
-
-        const qualityPreset = {
-
-            high:
-                "/printer",
-
-            medium:
-                "/ebook",
-
-            low:
-                "/screen"
-
-        };
 
 
         const candidates = [];
@@ -1395,7 +1561,47 @@ app.post(
 
             /*
              * =========================
-             * TARGET SIZE MODE
+             * TARGET VALIDATION
+             * =========================
+             */
+
+            if (
+                mode === "target" &&
+                targetBytes > 0 &&
+                targetBytes >= originalSize
+            ) {
+
+                const originalData =
+                    fs.readFileSync(
+                        input
+                    );
+
+
+                removeFile(input);
+
+
+                res.setHeader(
+                    "Content-Type",
+                    "application/pdf"
+                );
+
+
+                res.setHeader(
+                    "Content-Disposition",
+                    'attachment; filename="ConvertHub-Compressed.pdf"'
+                );
+
+
+                return res.send(
+                    originalData
+                );
+
+            }
+
+
+            /*
+             * =========================
+             * TARGET MODE
              * =========================
              */
 
@@ -1404,164 +1610,116 @@ app.post(
                 targetBytes > 0
             ) {
 
-                /*
-                 * If requested target is
-                 * larger than original,
-                 * there is nothing to compress.
-                 */
-
-                if (
-                    targetBytes >=
-                    originalSize
-                ) {
-
-                    const originalData =
-                        fs.readFileSync(
-                            input
-                        );
-
-
-                    removeFile(
-                        input
-                    );
-
-
-                    res.setHeader(
-                        "Content-Type",
-                        "application/pdf"
-                    );
-
-
-                    res.setHeader(
-                        "Content-Disposition",
-                        'attachment; filename="ConvertHub-Compressed.pdf"'
-                    );
-
-
-                    return res.send(
-                        originalData
-                    );
-
-                }
+                console.log(
+                    "PDF TARGET:",
+                    targetBytes,
+                    "bytes"
+                );
 
 
                 /*
-                 * Try all presets.
+                 * Run every compression profile.
                  */
 
                 for (
                     let i = 0;
-                    i < presets.length;
+                    i < profiles.length;
                     i++
                 ) {
+
+                    const profile =
+                        profiles[i];
+
 
                     const output =
                         path.join(
                             outputDir,
-                            `target-${Date.now()}-${i}.pdf`
+                            `pdf-compress-${Date.now()}-${i}.pdf`
                         );
 
 
-                    await new Promise(
-                        resolve => {
+                    try {
 
-                            execFile(
-                                "gs",
-                                [
-
-                                    "-sDEVICE=pdfwrite",
-
-                                    "-dCompatibilityLevel=1.4",
-
-                                    `-dPDFSETTINGS=${presets[i]}`,
-
-                                    "-dNOPAUSE",
-
-                                    "-dQUIET",
-
-                                    "-dBATCH",
-
-                                    `-sOutputFile=${output}`,
-
-                                    input
-
-                                ],
-                                {
-                                    timeout:
-                                        10 * 60 * 1000
-                                },
-                                (
-                                    error,
-                                    stdout,
-                                    stderr
-                                ) => {
-
-                                    if (
-                                        error
-                                    ) {
-
-                                        console.error(
-                                            "GS ERROR:",
-                                            stderr
-                                        );
-
-                                        resolve();
-
-                                        return;
-                                    }
+                        await runGhostscript(
+                            input,
+                            output,
+                            profile
+                        );
 
 
-                                    if (
-                                        fs.existsSync(
-                                            output
-                                        )
-                                    ) {
+                        if (
+                            fs.existsSync(
+                                output
+                            )
+                        ) {
 
-                                        const size =
-                                            fs.statSync(
-                                                output
-                                            ).size;
-
-
-                                        if (
-                                            size <
-                                            originalSize
-                                        ) {
-
-                                            candidates.push({
-
-                                                path:
-                                                    output,
-
-                                                size:
-                                                    size
-
-                                            });
-
-                                        } else {
-
-                                            removeFile(
-                                                output
-                                            );
-
-                                        }
-
-                                    }
+                            const size =
+                                fs.statSync(
+                                    output
+                                ).size;
 
 
-                                    resolve();
-
-                                }
+                            console.log(
+                                "Compression profile:",
+                                profile.name,
+                                "=>",
+                                size,
+                                "bytes"
                             );
 
+
+                            /*
+                             * Only keep files that
+                             * are smaller than original.
+                             */
+
+                            if (
+                                size <
+                                originalSize
+                            ) {
+
+                                candidates.push({
+
+                                    path:
+                                        output,
+
+                                    size:
+                                        size,
+
+                                    profile:
+                                        profile.name
+
+                                });
+
+                            } else {
+
+                                removeFile(
+                                    output
+                                );
+
+                            }
+
                         }
-                    );
+
+                    } catch (error) {
+
+                        console.error(
+                            "Profile failed:",
+                            profile.name,
+                            error.message
+                        );
+
+                        removeFile(
+                            output
+                        );
+
+                    }
 
                 }
 
 
                 /*
-                 * Nothing smaller than original.
+                 * No compression worked.
                  */
 
                 if (
@@ -1574,24 +1732,11 @@ app.post(
                         );
 
 
-                    removeFile(
-                        input
-                    );
+                    removeFile(input);
 
 
-                    res.setHeader(
-                        "Content-Type",
-                        "application/pdf"
-                    );
-
-
-                    res.setHeader(
-                        "Content-Disposition",
-                        'attachment; filename="ConvertHub-Compressed.pdf"'
-                    );
-
-
-                    return res.send(
+                    return sendPDFBuffer(
+                        res,
                         originalData
                     );
 
@@ -1599,13 +1744,16 @@ app.post(
 
 
                 /*
-                 * Prefer the largest file
-                 * that is still <= target.
+                 * First choice:
                  *
-                 * This keeps maximum quality.
+                 * Largest candidate that is
+                 * <= target.
+                 *
+                 * This gives the best quality
+                 * while staying under target.
                  */
 
-                const belowTarget =
+                const underTarget =
                     candidates
                         .filter(
                             item =>
@@ -1623,19 +1771,26 @@ app.post(
 
 
                 if (
-                    belowTarget.length > 0
+                    underTarget.length > 0
                 ) {
 
                     best =
-                        belowTarget[0];
+                        underTarget[0];
+
+
+                    console.log(
+                        "Target achieved:",
+                        best.size,
+                        "bytes"
+                    );
 
                 } else {
 
                     /*
-                     * Target was too aggressive.
+                     * Target could not be reached.
                      *
-                     * Use the smallest successful
-                     * compression instead.
+                     * Use the smallest file
+                     * available.
                      */
 
                     best =
@@ -1646,11 +1801,18 @@ app.post(
                                     b.size
                             )[0];
 
+
+                    console.log(
+                        "Target not reached.",
+                        "Smallest:",
+                        best.size
+                    );
+
                 }
 
 
                 /*
-                 * Delete every candidate except best.
+                 * Remove all other candidates.
                  */
 
                 candidates.forEach(
@@ -1705,11 +1867,29 @@ app.post(
              * =========================
              */
 
-            const preset =
-                qualityPreset[
-                    quality
-                ] ||
-                qualityPreset.medium;
+            let selectedProfile;
+
+
+            if (
+                quality === "high"
+            ) {
+
+                selectedProfile =
+                    profiles[0];
+
+            } else if (
+                quality === "low"
+            ) {
+
+                selectedProfile =
+                    profiles[5];
+
+            } else {
+
+                selectedProfile =
+                    profiles[2];
+
+            }
 
 
             const output =
@@ -1719,61 +1899,10 @@ app.post(
                 );
 
 
-            await new Promise(
-                (resolve, reject) => {
-
-                    execFile(
-                        "gs",
-                        [
-
-                            "-sDEVICE=pdfwrite",
-
-                            "-dCompatibilityLevel=1.4",
-
-                            `-dPDFSETTINGS=${preset}`,
-
-                            "-dNOPAUSE",
-
-                            "-dQUIET",
-
-                            "-dBATCH",
-
-                            `-sOutputFile=${output}`,
-
-                            input
-
-                        ],
-                        {
-                            timeout:
-                                10 * 60 * 1000
-                        },
-                        (
-                            error,
-                            stdout,
-                            stderr
-                        ) => {
-
-                            if (error) {
-
-                                console.error(
-                                    "GS AUTO ERROR:",
-                                    stderr
-                                );
-
-                                reject(
-                                    error
-                                );
-
-                                return;
-                            }
-
-
-                            resolve();
-
-                        }
-                    );
-
-                }
+            await runGhostscript(
+                input,
+                output,
+                selectedProfile
             );
 
 
@@ -1784,10 +1913,7 @@ app.post(
 
 
             /*
-             * Very important:
-             *
-             * Never return a compressed file
-             * that is larger than the original.
+             * Never return a larger PDF.
              */
 
             if (
@@ -1801,37 +1927,19 @@ app.post(
                     );
 
 
-                removeFile(
-                    input
-                );
-
-                removeFile(
-                    output
-                );
+                removeFile(input);
+                removeFile(output);
 
 
-                res.setHeader(
-                    "Content-Type",
-                    "application/pdf"
-                );
-
-
-                res.setHeader(
-                    "Content-Disposition",
-                    'attachment; filename="ConvertHub-Compressed.pdf"'
-                );
-
-
-                return res.send(
+                return sendPDFBuffer(
+                    res,
                     originalData
                 );
 
             }
 
 
-            removeFile(
-                input
-            );
+            removeFile(input);
 
 
             return res.download(
@@ -1893,11 +2001,42 @@ app.post(
 
 
 /* =========================
+   SEND PDF BUFFER
+========================= */
+
+function sendPDFBuffer(
+    res,
+    buffer
+) {
+
+    res.setHeader(
+        "Content-Type",
+        "application/pdf"
+    );
+
+    res.setHeader(
+        "Content-Disposition",
+        'attachment; filename="ConvertHub-Compressed.pdf"'
+    );
+
+    return res.send(
+        buffer
+    );
+
+}
+
+
+/* =========================
    ERROR HANDLER
 ========================= */
 
 app.use(
-    (error, req, res, next) => {
+    (
+        error,
+        req,
+        res,
+        next
+    ) => {
 
         console.error(
             "SERVER ERROR:",
