@@ -419,7 +419,82 @@ app.post("/convert/image", upload.single("file"), (req, res) => {
     );
 
 });
+/* =========================
+   IMAGE TO PDF
+========================= */
 
+app.post("/convert/image-to-pdf", upload.array("files", 20), (req, res) => {
+
+    if (!req.files || req.files.length === 0) {
+        return res.status(400).json({
+            error: "No images uploaded"
+        });
+    }
+
+    const files = req.files;
+
+    const outputName = `converthub-${Date.now()}.pdf`;
+    const output = path.join(outputDir, outputName);
+
+    const inputFiles = files.map(file => file.path);
+
+    const args = [
+        "-y"
+    ];
+
+    inputFiles.forEach(file => {
+        args.push("-i", file);
+    });
+
+    args.push(
+        "-filter_complex",
+        `${inputFiles.map((_, i) =>
+            `[${i}:v]scale=1240:1754:force_original_aspect_ratio=decrease,pad=1240:1754:(ow-iw)/2:(oh-ih)/2:white[v${i}]`
+        ).join(";")};${inputFiles.map((_, i) => `[v${i}]`).join("")}concat=n=${inputFiles.length}:v=1:a=0[outv]`,
+        "-map",
+        "[outv]",
+        "-c:v",
+        "mjpeg",
+        output
+    );
+
+    execFile(
+        "ffmpeg",
+        args,
+        {
+            timeout: 5 * 60 * 1000
+        },
+        (error, stdout, stderr) => {
+
+            files.forEach(file => {
+                fs.unlink(file.path, () => {});
+            });
+
+            if (error) {
+
+                console.error("IMAGE TO PDF ERROR:");
+                console.error(stderr);
+
+                if (fs.existsSync(output)) {
+                    fs.unlink(output, () => {});
+                }
+
+                return res.status(500).json({
+                    error: "Could not create PDF"
+                });
+            }
+
+            res.download(
+                output,
+                "ConvertHub-Images.pdf",
+                {},
+                () => {
+                    fs.unlink(output, () => {});
+                }
+            );
+        }
+    );
+});
 
 /* =========================
    START SERVER
