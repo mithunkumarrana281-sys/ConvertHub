@@ -7,6 +7,7 @@ RUN apt-get update \
     libreoffice \
     ghostscript \
     poppler-utils \
+    img2pdf \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
