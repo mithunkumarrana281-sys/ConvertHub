@@ -155,49 +155,4 @@ app.post("/convert/audio", upload.single("file"), (req, res) => {
 
 app.listen(PORT, () => {
     console.log(`ConvertHub API running on port ${PORT}`);
-});            error: "No file uploaded"
-        });
-    }
-
-    const input = req.file.path;
-    const output = path.join(
-        outputDir,
-        `${path.parse(req.file.originalname).name}.mp3`
-    );
-
-    execFile(
-        "ffmpeg",
-        [
-            "-y",
-            "-i", input,
-            "-vn",
-            "-codec:a", "libmp3lame",
-            "-b:a", "192k",
-            output
-        ],
-        (error, stdout, stderr) => {
-
-            fs.unlink(input, () => {});
-
-            if (error) {
-                console.error(stderr);
-
-                return res.status(500).json({
-                    error: "Conversion failed"
-                });
-            }
-
-            res.download(
-                output,
-                path.basename(output),
-                () => {
-                    fs.unlink(output, () => {});
-                }
-            );
-        }
-    );
-});
-
-app.listen(PORT, () => {
-    console.log(`ConvertHub API running on port ${PORT}`);
 });
