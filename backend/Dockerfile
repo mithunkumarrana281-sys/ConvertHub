@@ -9,6 +9,7 @@ RUN apt-get update \
     poppler-utils \
     img2pdf \
     qpdf \
+    zip \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
