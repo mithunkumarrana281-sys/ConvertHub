@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>PDF to JPG - ConvertHub</title>
+
+    <link rel="stylesheet" href="pdf-to-jpg.css">
+</head>
+
+<body>
+
+<header class="header">
+
+    <a href="index.html" class="logo">
+        <span class="logo-icon">↻</span>
+        Convert<span>Hub</span>
+    </a>
+
+    <a href="index.html" class="back-btn">
+        ← Home
+    </a>
+
+</header>
+
+
+<main>
+
+<section class="converter">
+
+    <div class="badge">
+        🖼️ PDF TO JPG
+    </div>
+
+    <h1>
+        Convert PDF<br>
+        to JPG
+    </h1>
+
+    <p class="subtitle">
+        Convert PDF pages into high-quality JPG images
+        quickly and easily.
+    </p>
+
+
+    <div class="converter-box" id="converterBox">
+
+        <div class="upload-icon">
+            ↑
+        </div>
+
+        <h2>
+            Select a PDF
+        </h2>
+
+        <p>
+            Choose a PDF file from your device
+        </p>
+
+        <button
+            type="button"
+            class="choose-btn"
+            id="chooseBtn"
+        >
+            Choose PDF
+        </button>
+
+        <input
+            type="file"
+            id="fileInput"
+            accept=".pdf,application/pdf"
+            style="display:none;"
+        >
+
+        <small>
+            Maximum file size: 100 MB
+        </small>
+
+    </div>
+
+
+    <div
+        id="fileInfo"
+        class="file-info"
+        style="display:none;"
+    ></div>
+
+
+    <div
+        id="actionArea"
+        class="action-area"
+        style="display:none;"
+    >
+
+        <button
+            type="button"
+            class="convert-btn"
+            id="convertBtn"
+        >
+            🖼️ Convert to JPG
+        </button>
+
+    </div>
+
+
+    <div class="security">
+        🔒 Your files are processed securely.
+    </div>
+
+</section>
+
+
+<section class="features">
+
+    <h2>
+        PDF to JPG
+    </h2>
+
+    <div class="feature-grid">
+
+        <div class="feature">
+            <span>🖼️</span>
+            <strong>High Quality</strong>
+            <p>Convert PDF pages into clear JPG images.</p>
+        </div>
+
+        <div class="feature">
+            <span>⚡</span>
+            <strong>Fast</strong>
+            <p>Quick server-side conversion.</p>
+        </div>
+
+        <div class="feature">
+            <span>🔒</span>
+            <strong>Secure</strong>
+            <p>Uploaded files are removed after processing.</p>
+        </div>
+
+    </div>
+
+</section>
+
+</main>
+
+
+<footer>
+
+    <strong>ConvertHub</strong>
+
+    <p>
+        Fast and simple online file tools.
+    </p>
+
+</footer>
+
+
+<script src="pdf-to-jpg.js"></script>
+
+</body>
+</html>
