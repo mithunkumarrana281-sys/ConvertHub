@@ -9,6 +9,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(cors());
+app.use(express.json());
 
 const uploadDir = path.join(__dirname, "uploads");
 const outputDir = path.join(__dirname, "outputs");
@@ -16,14 +17,8 @@ const outputDir = path.join(__dirname, "outputs");
 fs.mkdirSync(uploadDir, { recursive: true });
 fs.mkdirSync(outputDir, { recursive: true });
 
-
-/* =========================
-   MULTER
-========================= */
-
 const upload = multer({
     dest: uploadDir,
-
     limits: {
         fileSize: 100 * 1024 * 1024
     }
@@ -31,28 +26,18 @@ const upload = multer({
 
 
 /* =========================
-   SUPPORTED FORMATS
+   FORMATS
 ========================= */
 
 const audioFormats = [
-    "mp3",
-    "wav",
-    "flac",
-    "aac",
-    "m4a",
-    "ogg",
-    "opus"
+    "mp3", "wav", "flac", "aac",
+    "m4a", "ogg", "opus"
 ];
 
 const imageFormats = [
-    "jpg",
-    "jpeg",
-    "png",
-    "webp",
-    "bmp",
-    "tiff"
+    "jpg", "jpeg", "png",
+    "webp", "bmp", "tiff"
 ];
-
 
 const mimeTypes = {
 
@@ -74,7 +59,40 @@ const mimeTypes = {
 
 
 /* =========================
-   HOME / API STATUS
+   HELPER
+========================= */
+
+function safeName(name) {
+
+    return path.parse(name)
+        .name
+        .replace(
+            /[^a-zA-Z0-9._-]/g,
+            "_"
+        );
+}
+
+
+function removeFile(file) {
+
+    if (file && fs.existsSync(file)) {
+        fs.unlink(file, () => {});
+    }
+}
+
+
+function removeFiles(files) {
+
+    if (!files) return;
+
+    files.forEach(file => {
+        removeFile(file);
+    });
+}
+
+
+/* =========================
+   API STATUS
 ========================= */
 
 app.get("/", (req, res) => {
@@ -88,7 +106,11 @@ app.get("/", (req, res) => {
         services: [
             "Audio Converter",
             "Image Converter",
-            "Image to PDF"
+            "Image to PDF",
+            "PDF Merge",
+            "PDF Split",
+            "PDF to JPG",
+            "PDF Compress"
         ]
 
     });
@@ -113,19 +135,14 @@ app.post(
 
         }
 
-
-        const outputFormat =
+        const format =
             String(
                 req.body.format || "mp3"
             ).toLowerCase();
 
+        if (!audioFormats.includes(format)) {
 
-        if (!audioFormats.includes(outputFormat)) {
-
-            fs.unlink(
-                req.file.path,
-                () => {}
-            );
+            removeFile(req.file.path);
 
             return res.status(400).json({
                 error: "Unsupported audio format"
@@ -133,27 +150,18 @@ app.post(
 
         }
 
-
         const input = req.file.path;
 
-
-        const originalName =
-            path.parse(
+        const name =
+            safeName(
                 req.file.originalname
-            )
-            .name
-            .replace(
-                /[^a-zA-Z0-9._-]/g,
-                "_"
             );
-
 
         const output =
             path.join(
                 outputDir,
-                `${Date.now()}-${originalName}.${outputFormat}`
+                `${Date.now()}-${name}.${format}`
             );
-
 
         const args = [
             "-y",
@@ -161,8 +169,7 @@ app.post(
             input
         ];
 
-
-        if (outputFormat === "mp3") {
+        if (format === "mp3") {
 
             args.push(
                 "-codec:a",
@@ -173,8 +180,7 @@ app.post(
 
         }
 
-
-        if (outputFormat === "wav") {
+        if (format === "wav") {
 
             args.push(
                 "-codec:a",
@@ -183,8 +189,7 @@ app.post(
 
         }
 
-
-        if (outputFormat === "flac") {
+        if (format === "flac") {
 
             args.push(
                 "-codec:a",
@@ -193,20 +198,7 @@ app.post(
 
         }
 
-
-        if (outputFormat === "aac") {
-
-            args.push(
-                "-codec:a",
-                "aac",
-                "-b:a",
-                "192k"
-            );
-
-        }
-
-
-        if (outputFormat === "m4a") {
+        if (format === "aac") {
 
             args.push(
                 "-codec:a",
@@ -217,8 +209,18 @@ app.post(
 
         }
 
+        if (format === "m4a") {
 
-        if (outputFormat === "ogg") {
+            args.push(
+                "-codec:a",
+                "aac",
+                "-b:a",
+                "192k"
+            );
+
+        }
+
+        if (format === "ogg") {
 
             args.push(
                 "-codec:a",
@@ -229,8 +231,7 @@ app.post(
 
         }
 
-
-        if (outputFormat === "opus") {
+        if (format === "opus") {
 
             args.push(
                 "-codec:a",
@@ -241,9 +242,7 @@ app.post(
 
         }
 
-
         args.push(output);
-
 
         execFile(
             "ffmpeg",
@@ -254,32 +253,16 @@ app.post(
             },
             (error, stdout, stderr) => {
 
-                fs.unlink(
-                    input,
-                    () => {}
-                );
-
+                removeFile(input);
 
                 if (error) {
 
                     console.error(
-                        "AUDIO CONVERSION ERROR:"
+                        "AUDIO ERROR:",
+                        stderr
                     );
 
-                    console.error(stderr);
-
-
-                    if (
-                        fs.existsSync(output)
-                    ) {
-
-                        fs.unlink(
-                            output,
-                            () => {}
-                        );
-
-                    }
-
+                    removeFile(output);
 
                     return res.status(500).json({
                         error:
@@ -288,25 +271,17 @@ app.post(
 
                 }
 
-
                 res.download(
                     output,
-                    `${originalName}.${outputFormat}`,
+                    `${name}.${format}`,
                     {
                         headers: {
                             "Content-Type":
-                                mimeTypes[
-                                    outputFormat
-                                ]
+                                mimeTypes[format]
                         }
                     },
                     () => {
-
-                        fs.unlink(
-                            output,
-                            () => {}
-                        );
-
+                        removeFile(output);
                     }
                 );
 
@@ -335,19 +310,14 @@ app.post(
 
         }
 
-
-        const outputFormat =
+        const format =
             String(
                 req.body.format || "png"
             ).toLowerCase();
 
+        if (!imageFormats.includes(format)) {
 
-        if (!imageFormats.includes(outputFormat)) {
-
-            fs.unlink(
-                req.file.path,
-                () => {}
-            );
+            removeFile(req.file.path);
 
             return res.status(400).json({
                 error:
@@ -356,34 +326,23 @@ app.post(
 
         }
 
+        const input = req.file.path;
 
-        const input =
-            req.file.path;
-
-
-        const originalName =
-            path.parse(
+        const name =
+            safeName(
                 req.file.originalname
-            )
-            .name
-            .replace(
-                /[^a-zA-Z0-9._-]/g,
-                "_"
             );
 
-
         const actualFormat =
-            outputFormat === "jpeg"
+            format === "jpeg"
                 ? "jpg"
-                : outputFormat;
-
+                : format;
 
         const output =
             path.join(
                 outputDir,
-                `${Date.now()}-${originalName}.${actualFormat}`
+                `${Date.now()}-${name}.${actualFormat}`
             );
-
 
         const args = [
             "-y",
@@ -393,10 +352,9 @@ app.post(
             "1"
         ];
 
-
         if (
-            outputFormat === "jpg" ||
-            outputFormat === "jpeg"
+            format === "jpg" ||
+            format === "jpeg"
         ) {
 
             args.push(
@@ -406,9 +364,7 @@ app.post(
 
         }
 
-
         args.push(output);
-
 
         execFile(
             "ffmpeg",
@@ -419,34 +375,16 @@ app.post(
             },
             (error, stdout, stderr) => {
 
-                fs.unlink(
-                    input,
-                    () => {}
-                );
-
+                removeFile(input);
 
                 if (error) {
 
                     console.error(
-                        "IMAGE CONVERSION ERROR:"
+                        "IMAGE ERROR:",
+                        stderr
                     );
 
-                    console.error(error);
-
-                    console.error(stderr);
-
-
-                    if (
-                        fs.existsSync(output)
-                    ) {
-
-                        fs.unlink(
-                            output,
-                            () => {}
-                        );
-
-                    }
-
+                    removeFile(output);
 
                     return res.status(500).json({
                         error:
@@ -455,10 +393,9 @@ app.post(
 
                 }
 
-
                 res.download(
                     output,
-                    `${originalName}.${actualFormat}`,
+                    `${name}.${actualFormat}`,
                     {
                         headers: {
                             "Content-Type":
@@ -468,12 +405,7 @@ app.post(
                         }
                     },
                     () => {
-
-                        fs.unlink(
-                            output,
-                            () => {}
-                        );
-
+                        removeFile(output);
                     }
                 );
 
@@ -505,28 +437,17 @@ app.post(
 
         }
 
-
         const files = req.files;
 
-        const convertedFiles = [];
+        const jpgFiles = [];
 
-        const pdfName =
-            `converthub-${Date.now()}.pdf`;
-
-        const pdfOutput =
+        const pdf =
             path.join(
                 outputDir,
-                pdfName
+                `converthub-${Date.now()}.pdf`
             );
 
-
         try {
-
-            /*
-             * Step 1:
-             * Convert every uploaded image
-             * to JPEG.
-             */
 
             for (
                 let i = 0;
@@ -534,38 +455,27 @@ app.post(
                 i++
             ) {
 
-                const input =
-                    files[i].path;
-
-
-                const jpgOutput =
+                const jpg =
                     path.join(
                         outputDir,
                         `pdf-${Date.now()}-${i}.jpg`
                     );
 
-
                 await new Promise(
                     (resolve, reject) => {
 
-                        const args = [
-                            "-y",
-                            "-i",
-                            input,
-
-                            "-q:v",
-                            "2",
-
-                            "-frames:v",
-                            "1",
-
-                            jpgOutput
-                        ];
-
-
                         execFile(
                             "ffmpeg",
-                            args,
+                            [
+                                "-y",
+                                "-i",
+                                files[i].path,
+                                "-q:v",
+                                "2",
+                                "-frames:v",
+                                "1",
+                                jpg
+                            ],
                             {
                                 timeout:
                                     2 * 60 * 1000
@@ -579,25 +489,15 @@ app.post(
                                 if (error) {
 
                                     console.error(
-                                        "PDF IMAGE CONVERSION ERROR:"
-                                    );
-
-                                    console.error(
                                         stderr
                                     );
 
-                                    reject(
-                                        error
-                                    );
+                                    reject(error);
 
                                     return;
                                 }
 
-
-                                convertedFiles.push(
-                                    jpgOutput
-                                );
-
+                                jpgFiles.push(jpg);
 
                                 resolve();
 
@@ -610,24 +510,16 @@ app.post(
             }
 
 
-            /*
-             * Step 2:
-             * Create PDF using img2pdf.
-             */
-
             await new Promise(
                 (resolve, reject) => {
 
-                    const args = [
-                        "-o",
-                        pdfOutput,
-                        ...convertedFiles
-                    ];
-
-
                     execFile(
                         "img2pdf",
-                        args,
+                        [
+                            "-o",
+                            pdf,
+                            ...jpgFiles
+                        ],
                         {
                             timeout:
                                 5 * 60 * 1000
@@ -641,20 +533,13 @@ app.post(
                             if (error) {
 
                                 console.error(
-                                    "IMG2PDF ERROR:"
-                                );
-
-                                console.error(
                                     stderr
                                 );
 
-                                reject(
-                                    error
-                                );
+                                reject(error);
 
                                 return;
                             }
-
 
                             resolve();
 
@@ -665,29 +550,15 @@ app.post(
             );
 
 
-            /*
-             * Delete uploaded files
-             */
-
-            files.forEach(
-                file => {
-
-                    fs.unlink(
-                        file.path,
-                        () => {}
-                    );
-
-                }
+            removeFiles(
+                files.map(
+                    file => file.path
+                )
             );
 
 
-            /*
-             * Delete temporary JPEG files
-             * after PDF download.
-             */
-
             res.download(
-                pdfOutput,
+                pdf,
                 "ConvertHub-Images.pdf",
                 {
                     headers: {
@@ -697,22 +568,8 @@ app.post(
                 },
                 () => {
 
-                    convertedFiles.forEach(
-                        file => {
-
-                            fs.unlink(
-                                file,
-                                () => {}
-                            );
-
-                        }
-                    );
-
-
-                    fs.unlink(
-                        pdfOutput,
-                        () => {}
-                    );
+                    removeFiles(jpgFiles);
+                    removeFile(pdf);
 
                 }
             );
@@ -721,55 +578,19 @@ app.post(
         } catch (error) {
 
             console.error(
-                "IMAGE TO PDF ERROR:"
+                "IMAGE TO PDF ERROR:",
+                error
             );
 
-            console.error(error);
-
-
-            /*
-             * Cleanup uploaded files
-             */
-
-            files.forEach(
-                file => {
-
-                    fs.unlink(
-                        file.path,
-                        () => {}
-                    );
-
-                }
+            removeFiles(
+                files.map(
+                    file => file.path
+                )
             );
 
+            removeFiles(jpgFiles);
 
-            /*
-             * Cleanup temporary JPEGs
-             */
-
-            convertedFiles.forEach(
-                file => {
-
-                    fs.unlink(
-                        file,
-                        () => {}
-                    );
-
-                }
-            );
-
-
-            if (
-                fs.existsSync(pdfOutput)
-            ) {
-
-                fs.unlink(
-                    pdfOutput,
-                    () => {}
-                );
-
-            }
-
+            removeFile(pdf);
 
             return res.status(500).json({
                 error:
@@ -777,6 +598,459 @@ app.post(
             });
 
         }
+
+    }
+);
+
+
+/* =========================
+   PDF MERGE
+========================= */
+
+app.post(
+    "/convert/pdf-merge",
+    upload.array("files", 20),
+    (req, res) => {
+
+        if (
+            !req.files ||
+            req.files.length < 2
+        ) {
+
+            return res.status(400).json({
+                error:
+                    "Please upload at least 2 PDF files"
+            });
+
+        }
+
+        const files = req.files;
+
+        const output =
+            path.join(
+                outputDir,
+                `merged-${Date.now()}.pdf`
+            );
+
+        const inputs =
+            files.map(
+                file => file.path
+            );
+
+        execFile(
+            "qpdf",
+            [
+                "--empty",
+                "--pages",
+                ...inputs,
+                "--",
+                output
+            ],
+            {
+                timeout:
+                    5 * 60 * 1000
+            },
+            (error, stdout, stderr) => {
+
+                removeFiles(inputs);
+
+                if (error) {
+
+                    console.error(
+                        "PDF MERGE ERROR:",
+                        stderr
+                    );
+
+                    removeFile(output);
+
+                    return res.status(500).json({
+                        error:
+                            "PDF merge failed"
+                    });
+
+                }
+
+                res.download(
+                    output,
+                    "ConvertHub-Merged.pdf",
+                    {
+                        headers: {
+                            "Content-Type":
+                                "application/pdf"
+                        }
+                    },
+                    () => {
+                        removeFile(output);
+                    }
+                );
+
+            }
+        );
+
+    }
+);
+
+
+/* =========================
+   PDF SPLIT
+========================= */
+
+app.post(
+    "/convert/pdf-split",
+    upload.single("file"),
+    (req, res) => {
+
+        if (!req.file) {
+
+            return res.status(400).json({
+                error:
+                    "No PDF uploaded"
+            });
+
+        }
+
+        const input =
+            req.file.path;
+
+        const outputDirSplit =
+            path.join(
+                outputDir,
+                `split-${Date.now()}`
+            );
+
+        fs.mkdirSync(
+            outputDirSplit,
+            {
+                recursive: true
+            }
+        );
+
+
+        execFile(
+            "pdfseparate",
+            [
+                input,
+                path.join(
+                    outputDirSplit,
+                    "page-%d.pdf"
+                )
+            ],
+            {
+                timeout:
+                    5 * 60 * 1000
+            },
+            (error, stdout, stderr) => {
+
+                removeFile(input);
+
+                if (error) {
+
+                    console.error(
+                        "PDF SPLIT ERROR:",
+                        stderr
+                    );
+
+                    fs.rmSync(
+                        outputDirSplit,
+                        {
+                            recursive: true,
+                            force: true
+                        }
+                    );
+
+                    return res.status(500).json({
+                        error:
+                            "PDF split failed"
+                    });
+
+                }
+
+                /*
+                 * Create ZIP using qpdf is not suitable
+                 * for ZIP, so use system zip command.
+                 */
+
+                const zip =
+                    `${outputDirSplit}.zip`;
+
+                execFile(
+                    "zip",
+                    [
+                        "-j",
+                        zip,
+                        path.join(
+                            outputDirSplit,
+                            "*.pdf"
+                        )
+                    ],
+                    (zipError) => {
+
+                        /*
+                         * If shell wildcard does not expand,
+                         * create ZIP using find-style list.
+                         */
+
+                        if (zipError) {
+
+                            fs.rmSync(
+                                outputDirSplit,
+                                {
+                                    recursive: true,
+                                    force: true
+                                }
+                            );
+
+                            removeFile(zip);
+
+                            return res.status(500).json({
+                                error:
+                                    "Could not package split PDF"
+                            });
+
+                        }
+
+                        res.download(
+                            zip,
+                            "ConvertHub-Split-PDF.zip",
+                            () => {
+
+                                fs.rmSync(
+                                    outputDirSplit,
+                                    {
+                                        recursive: true,
+                                        force: true
+                                    }
+                                );
+
+                                removeFile(zip);
+
+                            }
+                        );
+
+                    }
+                );
+
+            }
+        );
+
+    }
+);
+
+
+/* =========================
+   PDF TO JPG
+========================= */
+
+app.post(
+    "/convert/pdf-to-jpg",
+    upload.single("file"),
+    (req, res) => {
+
+        if (!req.file) {
+
+            return res.status(400).json({
+                error:
+                    "No PDF uploaded"
+            });
+
+        }
+
+        const input =
+            req.file.path;
+
+        const folder =
+            path.join(
+                outputDir,
+                `pdfjpg-${Date.now()}`
+            );
+
+        fs.mkdirSync(
+            folder,
+            {
+                recursive: true
+            }
+        );
+
+        const prefix =
+            path.join(
+                folder,
+                "page"
+            );
+
+
+        execFile(
+            "pdftoppm",
+            [
+                "-jpeg",
+                "-r",
+                "150",
+                input,
+                prefix
+            ],
+            {
+                timeout:
+                    10 * 60 * 1000
+            },
+            (error, stdout, stderr) => {
+
+                removeFile(input);
+
+                if (error) {
+
+                    console.error(
+                        "PDF TO JPG ERROR:",
+                        stderr
+                    );
+
+                    fs.rmSync(
+                        folder,
+                        {
+                            recursive: true,
+                            force: true
+                        }
+                    );
+
+                    return res.status(500).json({
+                        error:
+                            "PDF to JPG failed"
+                    });
+
+                }
+
+                /*
+                 * Return the first page for now.
+                 * Multi-page ZIP can be added in frontend/backend
+                 * as a separate option.
+                 */
+
+                const firstPage =
+                    path.join(
+                        folder,
+                        "page-1.jpg"
+                    );
+
+                if (
+                    !fs.existsSync(firstPage)
+                ) {
+
+                    fs.rmSync(
+                        folder,
+                        {
+                            recursive: true,
+                            force: true
+                        }
+                    );
+
+                    return res.status(500).json({
+                        error:
+                            "Could not create JPG"
+                    });
+
+                }
+
+                res.download(
+                    firstPage,
+                    "ConvertHub-Page-1.jpg",
+                    () => {
+
+                        fs.rmSync(
+                            folder,
+                            {
+                                recursive: true,
+                                force: true
+                            }
+                        );
+
+                    }
+                );
+
+            }
+        );
+
+    }
+);
+
+
+/* =========================
+   PDF COMPRESS
+========================= */
+
+app.post(
+    "/convert/pdf-compress",
+    upload.single("file"),
+    (req, res) => {
+
+        if (!req.file) {
+
+            return res.status(400).json({
+                error:
+                    "No PDF uploaded"
+            });
+
+        }
+
+        const input =
+            req.file.path;
+
+        const output =
+            path.join(
+                outputDir,
+                `compressed-${Date.now()}.pdf`
+            );
+
+
+        execFile(
+            "gs",
+            [
+                "-sDEVICE=pdfwrite",
+                "-dCompatibilityLevel=1.4",
+                "-dPDFSETTINGS=/ebook",
+                "-dNOPAUSE",
+                "-dQUIET",
+                "-dBATCH",
+                `-sOutputFile=${output}`,
+                input
+            ],
+            {
+                timeout:
+                    10 * 60 * 1000
+            },
+            (error, stdout, stderr) => {
+
+                removeFile(input);
+
+                if (error) {
+
+                    console.error(
+                        "PDF COMPRESS ERROR:",
+                        stderr
+                    );
+
+                    removeFile(output);
+
+                    return res.status(500).json({
+                        error:
+                            "PDF compression failed"
+                    });
+
+                }
+
+                res.download(
+                    output,
+                    "ConvertHub-Compressed.pdf",
+                    {
+                        headers: {
+                            "Content-Type":
+                                "application/pdf"
+                        }
+                    },
+                    () => {
+                        removeFile(output);
+                    }
+                );
+
+            }
+        );
 
     }
 );
