@@ -8,6 +8,7 @@ RUN apt-get update \
     ghostscript \
     poppler-utils \
     img2pdf \
+    qpdf \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
