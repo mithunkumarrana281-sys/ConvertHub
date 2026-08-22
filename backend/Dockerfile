@@ -1,7 +1,12 @@
 FROM node:20-bookworm-slim
 
 RUN apt-get update \
-    && apt-get install -y ffmpeg imagemagick \
+    && apt-get install -y \
+    ffmpeg \
+    imagemagick \
+    libreoffice \
+    ghostscript \
+    poppler-utils \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
