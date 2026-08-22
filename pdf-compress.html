@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Compress PDF - ConvertHub</title>
+
+    <link rel="stylesheet" href="pdf-compress.css">
+</head>
+
+<body>
+
+<header class="header">
+
+    <a href="index.html" class="logo">
+        <span class="logo-icon">↻</span>
+        Convert<span>Hub</span>
+    </a>
+
+    <a href="index.html" class="back-btn">
+        ← Home
+    </a>
+
+</header>
+
+
+<main>
+
+<section class="converter">
+
+    <div class="badge">
+        📦 PDF COMPRESSOR
+    </div>
+
+    <h1>
+        Compress PDF
+    </h1>
+
+    <p class="subtitle">
+        Reduce PDF file size with automatic or custom
+        target-size compression.
+    </p>
+
+
+    <div class="converter-box" id="converterBox">
+
+        <div class="upload-icon">
+            ↓
+        </div>
+
+        <h2>
+            Select a PDF
+        </h2>
+
+        <p>
+            Choose a PDF file from your device
+        </p>
+
+        <button
+            type="button"
+            class="choose-btn"
+            id="chooseBtn"
+        >
+            Choose PDF
+        </button>
+
+        <input
+            type="file"
+            id="fileInput"
+            accept=".pdf,application/pdf"
+            style="display:none;"
+        >
+
+        <small>
+            Maximum file size: 100 MB
+        </small>
+
+    </div>
+
+
+    <div
+        id="settings"
+        class="settings"
+        style="display:none;"
+    >
+
+        <h3>
+            Compression Settings
+        </h3>
+
+
+        <div class="setting-row">
+
+            <label>
+                Compression Mode
+            </label>
+
+            <select id="modeSelect">
+
+                <option value="auto">
+                    Auto Compress
+                </option>
+
+                <option value="target">
+                    Custom Target Size
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <div
+            id="targetBox"
+            class="target-box"
+            style="display:none;"
+        >
+
+            <label>
+                Target Size
+            </label>
+
+            <div class="target-input">
+
+                <input
+                    type="number"
+                    id="targetValue"
+                    min="1"
+                    step="0.1"
+                    value="2"
+                    placeholder="Enter size"
+                >
+
+                <select id="targetUnit">
+
+                    <option value="KB">
+                        KB
+                    </option>
+
+                    <option value="MB" selected>
+                        MB
+                    </option>
+
+                </select>
+
+            </div>
+
+            <small>
+                Enter your desired maximum size.
+            </small>
+
+        </div>
+
+
+        <div class="setting-row">
+
+            <label>
+                Quality
+            </label>
+
+            <select id="qualitySelect">
+
+                <option value="high">
+                    High Quality
+                </option>
+
+                <option value="medium" selected>
+                    Balanced
+                </option>
+
+                <option value="low">
+                    Smaller Size
+                </option>
+
+            </select>
+
+        </div>
+
+    </div>
+
+
+    <div
+        id="fileInfo"
+        class="file-info"
+        style="display:none;"
+    ></div>
+
+
+    <div
+        id="actionArea"
+        class="action-area"
+        style="display:none;"
+    >
+
+        <button
+            type="button"
+            class="convert-btn"
+            id="compressBtn"
+        >
+            📦 Compress PDF
+        </button>
+
+    </div>
+
+
+    <div class="security">
+        🔒 Your files are processed securely.
+    </div>
+
+</section>
+
+
+<section class="features">
+
+    <h2>
+        PDF Compression
+    </h2>
+
+    <div class="feature-grid">
+
+        <div class="feature">
+            <span>🎯</span>
+            <strong>Custom Target</strong>
+            <p>
+                Enter your own KB or MB target.
+            </p>
+        </div>
+
+        <div class="feature">
+            <span>⚡</span>
+            <strong>Auto Mode</strong>
+            <p>
+                Let ConvertHub choose the compression.
+            </p>
+        </div>
+
+        <div class="feature">
+            <span>🔒</span>
+            <strong>Secure</strong>
+            <p>
+                Files are removed after processing.
+            </p>
+        </div>
+
+    </div>
+
+</section>
+
+</main>
+
+
+<footer>
+
+    <strong>
+        ConvertHub
+    </strong>
+
+    <p>
+        Fast and simple online file tools.
+    </p>
+
+</footer>
+
+
+<script src="pdf-compress.js"></script>
+
+</body>
+</html>
