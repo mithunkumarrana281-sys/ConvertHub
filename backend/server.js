@@ -23,7 +23,7 @@ const upload = multer({
     }
 });
 
-const allowedFormats = [
+const audioFormats = [
     "mp3",
     "wav",
     "flac",
@@ -33,6 +33,15 @@ const allowedFormats = [
     "opus"
 ];
 
+const imageFormats = [
+    "jpg",
+    "jpeg",
+    "png",
+    "webp",
+    "bmp",
+    "tiff"
+];
+
 const mimeTypes = {
     mp3: "audio/mpeg",
     wav: "audio/wav",
@@ -40,16 +49,26 @@ const mimeTypes = {
     aac: "audio/aac",
     m4a: "audio/mp4",
     ogg: "audio/ogg",
-    opus: "audio/opus"
+    opus: "audio/opus",
+
+    jpg: "image/jpeg",
+    jpeg: "image/jpeg",
+    png: "image/png",
+    webp: "image/webp",
+    bmp: "image/bmp",
+    tiff: "image/tiff"
 };
+
 
 app.get("/", (req, res) => {
     res.json({
         name: "ConvertHub API",
-        status: "online",
-        service: "Audio Converter"
+        status: "online"
     });
 });
+
+
+/* AUDIO CONVERTER */
 
 app.post("/convert/audio", upload.single("file"), (req, res) => {
 
@@ -59,25 +78,30 @@ app.post("/convert/audio", upload.single("file"), (req, res) => {
         });
     }
 
-    const outputFormat = String(req.body.format || "mp3").toLowerCase();
+    const outputFormat =
+        String(req.body.format || "mp3").toLowerCase();
 
-    if (!allowedFormats.includes(outputFormat)) {
+    if (!audioFormats.includes(outputFormat)) {
+
         fs.unlink(req.file.path, () => {});
 
         return res.status(400).json({
-            error: "Unsupported output format"
+            error: "Unsupported audio format"
         });
     }
 
     const input = req.file.path;
 
-    const originalName = path.parse(req.file.originalname).name
-        .replace(/[^a-zA-Z0-9._-]/g, "_");
+    const originalName =
+        path.parse(req.file.originalname)
+            .name
+            .replace(/[^a-zA-Z0-9._-]/g, "_");
 
-    const output = path.join(
-        outputDir,
-        `${Date.now()}-${originalName}.${outputFormat}`
-    );
+    const output =
+        path.join(
+            outputDir,
+            `${Date.now()}-${originalName}.${outputFormat}`
+        );
 
     const args = [
         "-y",
@@ -125,6 +149,7 @@ app.post("/convert/audio", upload.single("file"), (req, res) => {
             fs.unlink(input, () => {});
 
             if (error) {
+
                 console.error(stderr);
 
                 if (fs.existsSync(output)) {
@@ -142,7 +167,7 @@ app.post("/convert/audio", upload.single("file"), (req, res) => {
                 {
                     headers: {
                         "Content-Type":
-                            mimeTypes[outputFormat] || "application/octet-stream"
+                            mimeTypes[outputFormat]
                     }
                 },
                 () => {
@@ -153,6 +178,93 @@ app.post("/convert/audio", upload.single("file"), (req, res) => {
     );
 });
 
+
+/* IMAGE CONVERTER */
+
+app.post("/convert/image", upload.single("file"), (req, res) => {
+
+    if (!req.file) {
+        return res.status(400).json({
+            error: "No image uploaded"
+        });
+    }
+
+    const outputFormat =
+        String(req.body.format || "png").toLowerCase();
+
+    if (!imageFormats.includes(outputFormat)) {
+
+        fs.unlink(req.file.path, () => {});
+
+        return res.status(400).json({
+            error: "Unsupported image format"
+        });
+    }
+
+    const input = req.file.path;
+
+    const originalName =
+        path.parse(req.file.originalname)
+            .name
+            .replace(/[^a-zA-Z0-9._-]/g, "_");
+
+    const actualFormat =
+        outputFormat === "jpeg"
+            ? "jpg"
+            : outputFormat;
+
+    const output =
+        path.join(
+            outputDir,
+            `${Date.now()}-${originalName}.${actualFormat}`
+        );
+
+    execFile(
+        "magick",
+        [
+            input,
+            output
+        ],
+        {
+            timeout: 5 * 60 * 1000
+        },
+        (error, stdout, stderr) => {
+
+            fs.unlink(input, () => {});
+
+            if (error) {
+
+                console.error(stderr);
+
+                if (fs.existsSync(output)) {
+                    fs.unlink(output, () => {});
+                }
+
+                return res.status(500).json({
+                    error: "Image conversion failed"
+                });
+            }
+
+            res.download(
+                output,
+                `${originalName}.${actualFormat}`,
+                {
+                    headers: {
+                        "Content-Type":
+                            mimeTypes[actualFormat]
+                    }
+                },
+                () => {
+                    fs.unlink(output, () => {});
+                }
+            );
+        }
+    );
+});
+
+
 app.listen(PORT, () => {
-    console.log(`ConvertHub API running on port ${PORT}`);
+    console.log(
+        `ConvertHub API running on port ${PORT}`
+    );
 });
