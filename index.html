@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ConvertHub - File Converter</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="header">
+    <div class="logo">
+        <span class="logo-icon">↻</span>
+        <span>Convert<span>Hub</span></span>
+    </div>
+
+    <nav class="desktop-nav">
+        <a href="#">Convert</a>
+        <a href="#">Optimize</a>
+        <a href="#">Merge</a>
+        <a href="#">Pricing</a>
+    </nav>
+
+    <div class="header-actions">
+        <button class="login-btn">Sign in</button>
+        <button class="signup-btn">Sign up</button>
+        <button class="menu-btn" id="menuBtn">☰</button>
+    </div>
+</header>
+
+
+<!-- MOBILE / SIDE MENU -->
+<div class="overlay" id="overlay"></div>
+
+<aside class="side-menu" id="sideMenu">
+
+    <div class="menu-header">
+        <h2>ConvertHub</h2>
+        <button id="closeMenu">×</button>
+    </div>
+
+    <div class="menu-content">
+
+        <div class="menu-section">
+            <button class="menu-title">
+                <span>🔄 Convert Files</span>
+                <b>⌄</b>
+            </button>
+
+            <div class="submenu">
+                <a href="#">Archive Converter</a>
+                <a href="#">Audio Converter</a>
+                <a href="#">CAD Converter</a>
+                <a href="#">Document Converter</a>
+                <a href="#">Ebook Converter</a>
+                <a href="#">Font Converter</a>
+                <a href="#">Image Converter</a>
+                <a href="#">Presentation Converter</a>
+                <a href="#">Spreadsheet Converter</a>
+                <a href="#">Vector Converter</a>
+                <a href="#">Video Converter</a>
+            </div>
+        </div>
+
+
+        <div class="menu-section">
+            <button class="menu-title">
+                <span>⚡ Optimize Files</span>
+                <b>⌄</b>
+            </button>
+
+            <div class="submenu">
+                <a href="#">Compress PDF</a>
+                <a href="#">Compress PNG</a>
+                <a href="#">Compress JPG</a>
+                <a href="#">PDF OCR</a>
+            </div>
+        </div>
+
+
+        <div class="menu-section">
+            <button class="menu-title">
+                <span>🔗 Merge Files</span>
+                <b>⌄</b>
+            </button>
+
+            <div class="submenu">
+                <a href="#">Merge PDF</a>
+            </div>
+        </div>
+
+
+        <div class="menu-section">
+            <button class="menu-title">
+                <span>🌐 Capture Websites</span>
+                <b>⌄</b>
+            </button>
+
+            <div class="submenu">
+                <a href="#">Website → PDF</a>
+                <a href="#">Website → PNG</a>
+                <a href="#">Website → JPG</a>
+            </div>
+        </div>
+
+
+        <div class="menu-section">
+            <button class="menu-title">
+                <span>📦 Archives</span>
+                <b>⌄</b>
+            </button>
+
+            <div class="submenu">
+                <a href="#">Create Archive</a>
+                <a href="#">Extract Archive</a>
+            </div>
+        </div>
+
+
+        <div class="menu-section">
+            <button class="menu-title">
+                <span>🔌 API</span>
+                <b>⌄</b>
+            </button>
+
+            <div class="submenu">
+                <a href="#">File Conversion API</a>
+                <a href="#">Office to PDF API</a>
+                <a href="#">PDF to Office API</a>
+                <a href="#">Video Encoding API</a>
+                <a href="#">HTML to PDF API</a>
+                <a href="#">Website Screenshot API</a>
+                <a href="#">Compress PDF API</a>
+                <a href="#">Compress Images API</a>
+                <a href="#">Merge PDF API</a>
+                <a href="#">Thumbnail API</a>
+                <a href="#">Watermark API</a>
+            </div>
+        </div>
+
+
+        <a class="simple-menu" href="#">🤖 Automate</a>
+        <a class="simple-menu" href="#">📚 Documentation</a>
+        <a class="simple-menu" href="#">💰 Pricing</a>
+
+    </div>
+
+    <div class="mobile-auth">
+        <button class="login-mobile">Sign in</button>
+        <button class="signup-mobile">Sign up</button>
+    </div>
+
+</aside>
+
+
+<!-- HERO -->
+<main>
+
+<section class="hero">
+
+    <div class="badge">
+        ✨ Powerful online file tools
+    </div>
+
+    <h1>
+        Convert anything.<br>
+        <span>Simply.</span>
+    </h1>
+
+    <p>
+        Convert, compress, merge and optimize your files
+        quickly and easily with ConvertHub.
+    </p>
+
+    <div class="upload-box" id="uploadBox">
+
+        <div class="upload-icon">↑</div>
+
+        <h3>Drop your files here</h3>
+
+        <p>or</p>
+
+        <button class="choose-btn" id="chooseBtn">
+            Choose Files
+        </button>
+
+        <input type="file" id="fileInput" hidden multiple>
+
+        <small>
+            Your files are processed securely.
+        </small>
+
+    </div>
+
+</section>
+
+
+<!-- TOOLS -->
+<section class="tools">
+
+    <div class="section-heading">
+        <h2>Popular Tools</h2>
+        <p>Everything you need to work with your files.</p>
+    </div>
+
+    <div class="tool-grid">
+
+        <div class="tool-card">
+            <div>🎵</div>
+            <h3>Audio Converter</h3>
+            <p>Convert MP3, M4A, WAV, FLAC and more.</p>
+        </div>
+
+        <div class="tool-card">
+            <div>🎬</div>
+            <h3>Video Converter</h3>
+            <p>Convert your videos to popular formats.</p>
+        </div>
+
+        <div class="tool-card">
+            <div>🖼️</div>
+            <h3>Image Converter</h3>
+            <p>Convert JPG, PNG, WEBP and more.</p>
+        </div>
+
+        <div class="tool-card">
+            <div>📄</div>
+            <h3>PDF Tools</h3>
+            <p>Compress, merge and optimize PDF files.</p>
+        </div>
+
+        <div class="tool-card">
+            <div>📦</div>
+            <h3>Archive Tools</h3>
+            <p>Create and extract archive files.</p>
+        </div>
+
+        <div class="tool-card">
+            <div>🌐</div>
+            <h3>Website Capture</h3>
+            <p>Save websites as PDF or images.</p>
+        </div>
+
+    </div>
+
+</section>
+
+</main>
+
+
+<footer>
+    <div class="footer-logo">ConvertHub</div>
+    <p>© 2026 ConvertHub. All rights reserved.</p>
+</footer>
+
+
+<script src="script.js"></script>
+
+</body>
+</html>

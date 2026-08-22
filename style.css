@@ -1,0 +1,434 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: #f7f9fc;
+    color: #172033;
+}
+
+.header {
+    height: 72px;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 6%;
+    border-bottom: 1px solid #e8ebf0;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 22px;
+    font-weight: 800;
+}
+
+.logo span span {
+    color: #635bff;
+}
+
+.logo-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    background: #635bff;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+}
+
+.desktop-nav {
+    display: flex;
+    gap: 30px;
+}
+
+.desktop-nav a {
+    text-decoration: none;
+    color: #4c5567;
+    font-weight: 600;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.login-btn,
+.signup-btn {
+    border: 0;
+    padding: 10px 17px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.login-btn {
+    background: transparent;
+}
+
+.signup-btn {
+    background: #635bff;
+    color: white;
+}
+
+.menu-btn {
+    display: none;
+    border: 0;
+    background: transparent;
+    font-size: 27px;
+    cursor: pointer;
+}
+
+
+/* SIDE MENU */
+
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.45);
+    z-index: 20;
+    display: none;
+}
+
+.overlay.active {
+    display: block;
+}
+
+.side-menu {
+    position: fixed;
+    top: 0;
+    right: -360px;
+    width: 350px;
+    max-width: 90%;
+    height: 100vh;
+    background: white;
+    z-index: 30;
+    transition: .3s ease;
+    overflow-y: auto;
+    box-shadow: -5px 0 25px rgba(0,0,0,.12);
+}
+
+.side-menu.active {
+    right: 0;
+}
+
+.menu-header {
+    height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    border-bottom: 1px solid #eee;
+}
+
+.menu-header h2 {
+    font-size: 21px;
+}
+
+.menu-header button {
+    border: 0;
+    background: none;
+    font-size: 32px;
+    cursor: pointer;
+}
+
+.menu-content {
+    padding: 12px;
+}
+
+.menu-section {
+    border-bottom: 1px solid #eee;
+}
+
+.menu-title {
+    width: 100%;
+    border: 0;
+    background: white;
+    padding: 16px 10px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    text-align: left;
+}
+
+.submenu {
+    display: none;
+    padding: 0 10px 10px 28px;
+}
+
+.menu-section.open .submenu {
+    display: block;
+}
+
+.menu-section.open .menu-title b {
+    transform: rotate(180deg);
+}
+
+.submenu a {
+    display: block;
+    padding: 9px 0;
+    color: #596274;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.simple-menu {
+    display: block;
+    padding: 16px 10px;
+    color: #20283a;
+    text-decoration: none;
+    font-weight: 700;
+    border-bottom: 1px solid #eee;
+}
+
+.mobile-auth {
+    padding: 20px;
+    display: flex;
+    gap: 10px;
+}
+
+.login-mobile,
+.signup-mobile {
+    flex: 1;
+    padding: 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 700;
+}
+
+.login-mobile {
+    background: white;
+    border: 1px solid #ddd;
+}
+
+.signup-mobile {
+    border: 0;
+    background: #635bff;
+    color: white;
+}
+
+
+/* HERO */
+
+.hero {
+    text-align: center;
+    padding: 80px 20px 70px;
+}
+
+.badge {
+    display: inline-block;
+    background: #eeecff;
+    color: #635bff;
+    padding: 8px 15px;
+    border-radius: 30px;
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 20px;
+}
+
+.hero h1 {
+    font-size: clamp(42px, 7vw, 76px);
+    line-height: 1.05;
+    letter-spacing: -3px;
+}
+
+.hero h1 span {
+    color: #635bff;
+}
+
+.hero > p {
+    max-width: 620px;
+    margin: 20px auto 35px;
+    color: #687184;
+    font-size: 18px;
+    line-height: 1.6;
+}
+
+
+/* UPLOAD */
+
+.upload-box {
+    max-width: 720px;
+    margin: auto;
+    background: white;
+    border: 2px dashed #cdd2df;
+    border-radius: 18px;
+    padding: 42px 20px;
+    cursor: pointer;
+    transition: .2s;
+}
+
+.upload-box:hover {
+    border-color: #635bff;
+}
+
+.upload-icon {
+    margin: auto;
+    width: 58px;
+    height: 58px;
+    border-radius: 50%;
+    background: #eeecff;
+    color: #635bff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 30px;
+}
+
+.upload-box h3 {
+    margin-top: 18px;
+    font-size: 20px;
+}
+
+.upload-box p {
+    color: #8a91a1;
+    margin: 8px;
+}
+
+.choose-btn {
+    border: 0;
+    background: #635bff;
+    color: white;
+    padding: 13px 25px;
+    border-radius: 9px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.upload-box small {
+    display: block;
+    color: #999;
+    margin-top: 18px;
+}
+
+
+/* TOOLS */
+
+.tools {
+    background: white;
+    padding: 70px 6%;
+}
+
+.section-heading {
+    text-align: center;
+    margin-bottom: 35px;
+}
+
+.section-heading h2 {
+    font-size: 32px;
+}
+
+.section-heading p {
+    color: #737c8e;
+    margin-top: 8px;
+}
+
+.tool-grid {
+    max-width: 1100px;
+    margin: auto;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+}
+
+.tool-card {
+    border: 1px solid #e8ebf0;
+    border-radius: 15px;
+    padding: 25px;
+    transition: .2s;
+}
+
+.tool-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 30px rgba(0,0,0,.07);
+}
+
+.tool-card > div {
+    font-size: 30px;
+}
+
+.tool-card h3 {
+    margin-top: 15px;
+}
+
+.tool-card p {
+    color: #747d8e;
+    margin-top: 8px;
+    line-height: 1.5;
+}
+
+
+/* FOOTER */
+
+footer {
+    background: #111827;
+    color: white;
+    text-align: center;
+    padding: 35px 20px;
+}
+
+.footer-logo {
+    font-size: 22px;
+    font-weight: 800;
+    margin-bottom: 8px;
+}
+
+footer p {
+    color: #9ca3af;
+}
+
+
+/* MOBILE */
+
+@media (max-width: 750px) {
+
+    .header {
+        padding: 0 18px;
+    }
+
+    .desktop-nav,
+    .login-btn,
+    .signup-btn {
+        display: none;
+    }
+
+    .menu-btn {
+        display: block;
+    }
+
+    .hero {
+        padding: 60px 16px;
+    }
+
+    .hero h1 {
+        font-size: 48px;
+        letter-spacing: -2px;
+    }
+
+    .hero > p {
+        font-size: 16px;
+    }
+
+    .upload-box {
+        padding: 35px 15px;
+    }
+
+    .tools {
+        padding: 50px 16px;
+    }
+
+    .tool-grid {
+        grid-template-columns: 1fr;
+    }
+}
