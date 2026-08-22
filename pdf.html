@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JPG to PDF - ConvertHub</title>
+    <link rel="stylesheet" href="pdf.css">
+</head>
+
+<body>
+
+<header class="header">
+
+    <a href="index.html" class="logo">
+        <span class="logo-icon">↻</span>
+        Convert<span>Hub</span>
+    </a>
+
+    <a href="index.html" class="back-btn">
+        ← Home
+    </a>
+
+</header>
+
+
+<main>
+
+<section class="converter">
+
+    <div class="badge">
+        📄 JPG TO PDF
+    </div>
+
+    <h1>
+        Convert Images<br>
+        to PDF
+    </h1>
+
+    <p class="subtitle">
+        Convert JPG, JPEG, PNG and WEBP images
+        into a PDF document.
+    </p>
+
+
+    <div class="converter-box" id="converterBox">
+
+        <div class="upload-icon">
+            ↑
+        </div>
+
+        <h2>
+            Select your images
+        </h2>
+
+        <p>
+            Choose one or multiple images
+        </p>
+
+        <button
+            type="button"
+            class="choose-btn"
+            id="chooseBtn"
+        >
+            Choose Images
+        </button>
+
+        <input
+            type="file"
+            id="fileInput"
+            accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+            multiple
+            style="display:none;"
+        >
+
+        <small>
+            Maximum 20 images
+        </small>
+
+    </div>
+
+
+    <div
+        id="imageList"
+        class="image-list"
+    ></div>
+
+
+    <div
+        id="actionArea"
+        class="action-area"
+        style="display:none;"
+    >
+
+        <button
+            type="button"
+            class="convert-btn"
+            id="convertBtn"
+        >
+            📄 Create PDF
+        </button>
+
+    </div>
+
+
+    <div class="security">
+        🔒 Your files are processed securely.
+    </div>
+
+</section>
+
+
+<section class="formats">
+
+    <h2>Supported Formats</h2>
+
+    <div class="format-grid">
+        <div>JPG</div>
+        <div>JPEG</div>
+        <div>PNG</div>
+        <div>WEBP</div>
+    </div>
+
+</section>
+
+</main>
+
+
+<footer>
+
+    <strong>ConvertHub</strong>
+
+    <p>
+        Fast and simple online file tools.
+    </p>
+
+</footer>
+
+
+<script src="pdf.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>PDF Merge - ConvertHub</title>
+
+    <link rel="stylesheet" href="pdf-merge.css">
+</head>
+
+<body>
+
+<header class="header">
+
+    <a href="index.html" class="logo">
+        <span class="logo-icon">↻</span>
+        Convert<span>Hub</span>
+    </a>
+
+    <a href="index.html" class="back-btn">
+        ← Home
+    </a>
+
+</header>
+
+
+<main>
+
+<section class="converter">
+
+    <div class="badge">
+        📑 PDF MERGE
+    </div>
+
+    <h1>
+        Merge PDF Files
+    </h1>
+
+    <p class="subtitle">
+        Combine multiple PDF files into one PDF document
+        quickly and easily.
+    </p>
+
+
+    <div class="converter-box" id="converterBox">
+
+        <div class="upload-icon">
+            ↑
+        </div>
+
+        <h2>
+            Select PDF files
+        </h2>
+
+        <p>
+            Choose two or more PDF files
+        </p>
+
+        <button
+            type="button"
+            class="choose-btn"
+            id="chooseBtn"
+        >
+            Choose PDF Files
+        </button>
+
+        <input
+            type="file"
+            id="fileInput"
+            accept=".pdf,application/pdf"
+            multiple
+            style="display:none;"
+        >
+
+        <small>
+            Maximum 20 PDF files • 100 MB per file
+        </small>
+
+    </div>
+
+
+    <div
+        id="fileList"
+        class="file-list"
+    ></div>
+
+
+    <div
+        id="actionArea"
+        class="action-area"
+        style="display:none;"
+    >
+
+        <button
+            type="button"
+            class="convert-btn"
+            id="mergeBtn"
+        >
+            📑 Merge PDFs
+        </button>
+
+    </div>
+
+
+    <div class="security">
+        🔒 Your files are processed securely.
+    </div>
+
+</section>
+
+
+<section class="features">
+
+    <h2>
+        Why Merge PDFs?
+    </h2>
+
+    <div class="feature-grid">
+
+        <div class="feature">
+            <span>📄</span>
+            <strong>Multiple Files</strong>
+            <p>Combine up to 20 PDFs.</p>
+        </div>
+
+        <div class="feature">
+            <span>⚡</span>
+            <strong>Fast Processing</strong>
+            <p>Quick server-side processing.</p>
+        </div>
+
+        <div class="feature">
+            <span>🔒</span>
+            <strong>Secure</strong>
+            <p>Files are removed after processing.</p>
+        </div>
+
+    </div>
+
+</section>
+
+</main>
+
+
+<footer>
+
+    <strong>ConvertHub</strong>
+
+    <p>
+        Fast and simple online file tools.
+    </p>
+
+</footer>
+
+
+<script src="pdf-merge.js"></script>
+
+</body>
+</html>
