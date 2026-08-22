@@ -192,7 +192,15 @@ app.post("/convert/image", upload.single("file"), (req, res) => {
     const outputFormat =
         String(req.body.format || "png").toLowerCase();
 
-    if (!imageFormats.includes(outputFormat)) {
+    const allowedFormats = [
+        "jpg",
+        "png",
+        "webp",
+        "bmp",
+        "tiff"
+    ];
+
+    if (!allowedFormats.includes(outputFormat)) {
 
         fs.unlink(req.file.path, () => {});
 
@@ -205,26 +213,30 @@ app.post("/convert/image", upload.single("file"), (req, res) => {
 
     const originalName =
         path.parse(req.file.originalname)
-            .name
-            .replace(/[^a-zA-Z0-9._-]/g, "_");
-
-    const actualFormat =
-        outputFormat === "jpeg"
-            ? "jpg"
-            : outputFormat;
+        .name
+        .replace(/[^a-zA-Z0-9._-]/g, "_");
 
     const output =
         path.join(
             outputDir,
-            `${Date.now()}-${originalName}.${actualFormat}`
+            `${Date.now()}-${originalName}.${outputFormat}`
         );
 
-     execFile(
-     "convert",
-     [
-         input,
-         output
-     ],
+    const args = [
+        "-y",
+        "-i", input,
+        "-frames:v", "1"
+    ];
+
+    if (outputFormat === "jpg") {
+        args.push("-q:v", "2");
+    }
+
+    args.push(output);
+
+    execFile(
+        "ffmpeg",
+        args,
         {
             timeout: 5 * 60 * 1000
         },
@@ -234,6 +246,8 @@ app.post("/convert/image", upload.single("file"), (req, res) => {
 
             if (error) {
 
+                console.error("IMAGE CONVERSION ERROR:");
+                console.error(error);
                 console.error(stderr);
 
                 if (fs.existsSync(output)) {
@@ -247,13 +261,8 @@ app.post("/convert/image", upload.single("file"), (req, res) => {
 
             res.download(
                 output,
-                `${originalName}.${actualFormat}`,
-                {
-                    headers: {
-                        "Content-Type":
-                            mimeTypes[actualFormat]
-                    }
-                },
+                `${originalName}.${outputFormat}`,
+                {},
                 () => {
                     fs.unlink(output, () => {});
                 }
@@ -261,7 +270,6 @@ app.post("/convert/image", upload.single("file"), (req, res) => {
         }
     );
 });
-
 
 app.listen(PORT, () => {
     console.log(
