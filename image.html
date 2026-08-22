@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Converter - ConvertHub</title>
+    <link rel="stylesheet" href="image.css">
+</head>
+
+<body>
+
+<header class="header">
+
+    <a href="index.html" class="logo">
+        <span class="logo-icon">↻</span>
+        Convert<span>Hub</span>
+    </a>
+
+    <a href="index.html" class="back-btn">← Home</a>
+
+</header>
+
+
+<main>
+
+<section class="converter">
+
+    <div class="badge">🖼️ IMAGE CONVERTER</div>
+
+    <h1>Convert Image Files</h1>
+
+    <p class="subtitle">
+        Convert JPG, PNG, WEBP, BMP and TIFF images
+        quickly and easily.
+    </p>
+
+
+    <div class="converter-box" id="converterBox">
+
+        <div class="upload-icon">↑</div>
+
+        <h2>Drop your image here</h2>
+
+        <p>or choose an image from your device</p>
+
+        <button class="choose-btn" id="chooseBtn">
+            Choose Image
+        </button>
+
+        <input
+            type="file"
+            id="fileInput"
+            accept="image/*"
+            hidden
+        >
+
+        <small>
+            Maximum file size: 100 MB
+        </small>
+
+    </div>
+
+    <div class="security">
+        🔒 Your files are processed securely.
+    </div>
+
+</section>
+
+
+<section class="formats">
+
+    <h2>Supported Formats</h2>
+
+    <div class="format-grid">
+        <div>JPG</div>
+        <div>PNG</div>
+        <div>WEBP</div>
+        <div>BMP</div>
+        <div>TIFF</div>
+    </div>
+
+</section>
+
+</main>
+
+
+<footer>
+    <strong>ConvertHub</strong>
+    <p>Fast and simple online file tools.</p>
+</footer>
+
+
+<script src="image.js"></script>
+
+</body>
+</html>
